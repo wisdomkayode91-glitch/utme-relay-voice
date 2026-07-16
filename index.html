@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>UTMESchools Voiceover Generator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: #EDE7D6;
+    color: #24211B;
+  }
+  header {
+    background: #1F5C3E;
+    padding: 24px 20px 32px;
+  }
+  header h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    color: #fff;
+    margin: 0 0 4px;
+    font-size: 22px;
+  }
+  header p {
+    color: #CFE3D6;
+    margin: 0;
+    font-size: 14px;
+  }
+  main {
+    max-width: 480px;
+    margin: -16px auto 40px;
+    padding: 0 16px;
+  }
+  .card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #5B5645;
+    margin-bottom: 6px;
+  }
+  textarea, input[type=text], input[type=password] {
+    width: 100%;
+    border: 1px solid #D8D2BE;
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #24211B;
+    margin-bottom: 14px;
+  }
+  textarea { min-height: 110px; resize: vertical; }
+  .voice-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .voice-btn {
+    border: 1px solid #D8D2BE;
+    background: #fff;
+    color: #3C5A8A;
+    border-radius: 6px;
+    padding: 10px 8px;
+    font-size: 12px;
+    text-align: left;
+    cursor: pointer;
+  }
+  .voice-btn.active {
+    background: #1D3E6E;
+    border-color: #1D3E6E;
+    color: #fff;
+  }
+  button.primary {
+    width: 100%;
+    background: #1F5C3E;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 13px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  button.primary:disabled { background: #8AA893; }
+  .error { color: #B23A3A; font-size: 13px; margin-top: 10px; }
+  audio { width: 100%; margin-top: 14px; }
+  .helper { font-size: 11px; color: #8A7F5F; margin-top: -8px; margin-bottom: 14px; }
+  a.download { display: inline-block; margin-top: 10px; color: #1D3E6E; font-size: 13px; text-decoration: none; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>UTMESchools Voiceover</h1>
+  <p>Paste your script, pick a voice, get real audio.</p>
+</header>
+
+<main>
+  <div class="card">
+    <label for="relayUrl">Voice relay URL (from Cloudflare)</label>
+    <input type="text" id="relayUrl" placeholder="https://utme-relay-voice.yourname.workers.dev" />
+    <p class="helper">Saved on this device only.</p>
+  </div>
+
+  <div class="card">
+    <label for="scriptText">Script text</label>
+    <textarea id="scriptText" placeholder="Paste your hook, body, and CTA here..."></textarea>
+
+    <label>Voice</label>
+    <div class="voice-grid" id="voiceGrid"></div>
+
+    <button class="primary" id="generateBtn">🔊 Generate voiceover</button>
+    <div id="errorBox" class="error" style="display:none;"></div>
+    <audio id="player" controls style="display:none;"></audio>
+    <a id="downloadLink" class="download" style="display:none;" download="utme-voiceover.mp3">Download MP3</a>
+  </div>
+</main>
+
+<script>
+  const VOICES = [
+    { id: "ezinne_energetic", name: "en-NG-EzinneNeural", rate: "+15%", pitch: "+2st", label: "Energetic student (female)" },
+    { id: "ezinne_mentor", name: "en-NG-EzinneNeural", rate: "-8%", pitch: "0st", label: "Calm mentor (female)" },
+    { id: "abeo_mentor", name: "en-NG-AbeoNeural", rate: "-5%", pitch: "0st", label: "Confident mentor (male)" },
+    { id: "abeo_casual", name: "en-NG-AbeoNeural", rate: "+12%", pitch: "+1st", label: "Relatable student (male)" },
+  ];
+
+  let selectedVoice = VOICES[0].id;
+
+  const voiceGrid = document.getElementById("voiceGrid");
+  VOICES.forEach((v) => {
+    const btn = document.createElement("button");
+    btn.className = "voice-btn" + (v.id === selectedVoice ? " active" : "");
+    btn.textContent = v.label;
+    btn.onclick = () => {
+      selectedVoice = v.id;
+      document.querySelectorAll(".voice-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+    };
+    voiceGrid.appendChild(btn);
+  });
+
+  const relayInput = document.getElementById("relayUrl");
+  relayInput.value = localStorage.getItem("utme-relay-url") || "";
+  relayInput.addEventListener("input", () => {
+    localStorage.setItem("utme-relay-url", relayInput.value.trim());
+  });
+
+  function escapeXml(str) {
+    return String(str || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&apos;");
+  }
+
+  document.getElementById("generateBtn").addEventListener("click", async () => {
+    const errorBox = document.getElementById("errorBox");
+    const player = document.getElementById("player");
+    const downloadLink = document.getElementById("downloadLink");
+    const btn = document.getElementById("generateBtn");
+    errorBox.style.display = "none";
+    player.style.display = "none";
+    downloadLink.style.display = "none";
+
+    const relayUrl = relayInput.value.trim();
+    const scriptText = document.getElementById("scriptText").value.trim();
+
+    if (!relayUrl) {
+      errorBox.textContent = "Add your relay URL above first.";
+      errorBox.style.display = "block";
+      return;
+    }
+    if (!scriptText) {
+      errorBox.textContent = "Paste a script first.";
+      errorBox.style.display = "block";
+      return;
+    }
+
+    const voice = VOICES.find((v) => v.id === selectedVoice);
+    const ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-NG">
+  <voice name="${voice.name}">
+    <prosody rate="${voice.rate}" pitch="${voice.pitch}">
+      ${escapeXml(scriptText)}
+    </prosody>
+  </voice>
+</speak>`;
+
+    btn.disabled = true;
+    btn.textContent = "Recording voice...";
+
+    try {
+      const res = await fetch(relayUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/ssml+xml" },
+        body: ssml,
+      });
+      if (!res.ok) {
+        throw new Error("Relay error (" + res.status + "). Check your Worker's secrets are set correctly.");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      player.src = url;
+      player.style.display = "block";
+      downloadLink.href = url;
+      downloadLink.style.display = "inline-block";
+    } catch (e) {
+      errorBox.textContent = e.message || "Couldn't reach the relay. Check the URL is correct.";
+      errorBox.style.display = "block";
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "🔊 Generate voiceover";
+    }
+  });
+</script>
+
+</body>
+</html>
