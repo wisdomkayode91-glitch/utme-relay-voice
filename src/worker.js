@@ -33,7 +33,7 @@ export default {
           method: "POST",
           headers: {
             "Ocp-Apim-Subscription-Key": env.AZURE_KEY,
-            "Content-Type": "application/ssml+xml",
+            "Content-Type": "application/ssml+xml; charset=utf-8",
             "X-Microsoft-OutputFormat": "audio-16khz-128kbitrate-mono-mp3",
             "User-Agent": "utme-voice-relay",
           },
@@ -69,3 +69,4 @@ export default {
     }
   },
 };
+                                                                                                                                     
