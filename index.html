@@ -131,10 +131,12 @@
 
 <script>
   const VOICES = [
-    { id: "andrew_sharp", name: "en-US-AndrewMultilingualNeural", rate: "-3%", pitch: "0st", label: "Sharp & confident (male)" },
-    { id: "ava_warm", name: "en-US-AvaMultilingualNeural", rate: "-5%", pitch: "0st", label: "Warm & convincing (female)" },
-    { id: "brian_hype", name: "en-US-BrianMultilingualNeural", rate: "+12%", pitch: "+1st", label: "Enthusiastic hype (male)" },
-    { id: "emma_crisp", name: "en-US-EmmaMultilingualNeural", rate: "+8%", pitch: "+1st", label: "Crisp & energetic (female)" },
+    { id: "brian_hype", name: "en-US-BrianMultilingualNeural", rate: "+12%", pitch: "+1st", label: "Enthusiastic hype (male)", lang: "en-US" },
+    { id: "emma_crisp", name: "en-US-EmmaMultilingualNeural", rate: "+8%", pitch: "+1st", label: "Crisp & energetic (female)", lang: "en-US" },
+    { id: "ryan_smooth", name: "en-GB-RyanNeural", rate: "-3%", pitch: "0st", label: "Smooth & sharp (male)", lang: "en-GB" },
+    { id: "jenny_convincing", name: "en-US-JennyNeural", rate: "-3%", pitch: "0st", label: "Confident & convincing (female)", lang: "en-US" },
+    { id: "guy_gogetter", name: "en-US-GuyNeural", rate: "+10%", pitch: "+1st", label: "Energetic go-getter (male)", lang: "en-US" },
+    { id: "abeo_nigerian", name: "en-NG-AbeoNeural", rate: "-5%", pitch: "0st", label: "Nigerian mentor (male)", lang: "en-NG" },
   ];
 
   let selectedVoice = VOICES[0].id;
@@ -191,7 +193,7 @@
     }
 
     const voice = VOICES.find((v) => v.id === selectedVoice);
-    const ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">
+    const ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${voice.lang}">
   <voice name="${voice.name}">
     <prosody rate="${voice.rate}" pitch="${voice.pitch}">
       ${escapeXml(scriptText)}
