@@ -131,10 +131,10 @@
 
 <script>
   const VOICES = [
-    { id: "ezinne_energetic", name: "en-NG-EzinneNeural", rate: "+15%", pitch: "+2st", label: "Energetic student (female)" },
-    { id: "ezinne_mentor", name: "en-NG-EzinneNeural", rate: "-8%", pitch: "0st", label: "Calm mentor (female)" },
-    { id: "abeo_mentor", name: "en-NG-AbeoNeural", rate: "-5%", pitch: "0st", label: "Confident mentor (male)" },
-    { id: "abeo_casual", name: "en-NG-AbeoNeural", rate: "+12%", pitch: "+1st", label: "Relatable student (male)" },
+    { id: "andrew_sharp", name: "en-US-AndrewMultilingualNeural", rate: "-3%", pitch: "0st", label: "Sharp & confident (male)" },
+    { id: "ava_warm", name: "en-US-AvaMultilingualNeural", rate: "-5%", pitch: "0st", label: "Warm & convincing (female)" },
+    { id: "brian_hype", name: "en-US-BrianMultilingualNeural", rate: "+12%", pitch: "+1st", label: "Enthusiastic hype (male)" },
+    { id: "emma_crisp", name: "en-US-EmmaMultilingualNeural", rate: "+8%", pitch: "+1st", label: "Crisp & energetic (female)" },
   ];
 
   let selectedVoice = VOICES[0].id;
@@ -191,7 +191,7 @@
     }
 
     const voice = VOICES.find((v) => v.id === selectedVoice);
-    const ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-NG">
+    const ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">
   <voice name="${voice.name}">
     <prosody rate="${voice.rate}" pitch="${voice.pitch}">
       ${escapeXml(scriptText)}
