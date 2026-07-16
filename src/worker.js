@@ -35,6 +35,7 @@ export default {
             "Ocp-Apim-Subscription-Key": env.AZURE_KEY,
             "Content-Type": "application/ssml+xml",
             "X-Microsoft-OutputFormat": "audio-16khz-128kbitrate-mono-mp3",
+            "User-Agent": "utme-voice-relay",
           },
           body: ssml,
         }
@@ -42,8 +43,11 @@ export default {
 
       if (!azureResponse.ok) {
         const errorText = await azureResponse.text();
+        const headerDump = [...azureResponse.headers.entries()]
+          .map(([k, v]) => `${k}: ${v}`)
+          .join(" | ");
         return new Response(
-          `Azure rejected the request (status ${azureResponse.status}): ${errorText || "no details returned"}`,
+          `Azure rejected the request.\nStatus: ${azureResponse.status} ${azureResponse.statusText}\nHeaders: ${headerDump}\nBody: ${errorText || "(empty)"}\nRegion used: ${env.AZURE_REGION}\nSSML sent:\n${ssml}`,
           { status: 502, headers: { "Access-Control-Allow-Origin": "*" } }
         );
       }
@@ -65,4 +69,3 @@ export default {
     }
   },
 };
-        
